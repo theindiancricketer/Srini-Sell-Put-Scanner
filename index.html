@@ -882,8 +882,9 @@ Be realistic with IV levels and premiums given the current macro environment (ta
     // Parse JSON from response
     let result;
     try {
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      result = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+      const cleaned = rawText.replace(/```json|```/g, '').trim();
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      result = JSON.parse(jsonMatch ? jsonMatch[0] : cleaned);
     } catch(e) {
       throw new Error("Could not parse scan results. Raw: " + rawText.slice(0, 200));
     }
