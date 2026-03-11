@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Put Scanner — Options Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --panel: #0f1318;
+    --border: #1e2530;
+    --border-bright: #2e3d50;
+    --accent: #00e5a0;
+    --accent2: #0099ff;
+    --accent3: #ff6b35;
+    --warn: #ffcc00;
+    --text: #e8edf2;
+    --muted: #5a6a7a;
+    --dim: #8a9aaa;
+    --red: #ff4466;
+    --green: #00e5a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .brand h1 span { color: var(--accent); }
+
+  .brand p {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* Control bar */
+  .control-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    gap: 10px;
+    margin-bottom: 24px;
+    align-items: end;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .field input, .field select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,229,160,0.1);
+  }
+
+  .field select option {
+    background: #1a2030;
+  }
+
+  /* Scan button */
+  .scan-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 11px 24px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    align-self: end;
+  }
+
+  .scan-btn:hover:not(:disabled) {
+    background: #00ffb3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,229,160,0.3);
+  }
+
+  .scan-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .scan-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    align-self: end;
+  }
+
+  .clear-btn:hover { color: var(--text); border-color: var(--border-bright); }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    font-size: 11px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+  }
+
+  .status-item .val {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .status-item .val.green { color: var(--accent); }
+  .status-item .val.yellow { color: var(--warn); }
+  .status-item .val.red { color: var(--red); }
+
+  /* Output */
+  #output {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Thinking / loading */
+  .thinking {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .thinking .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .thinking-dots::after {
+    content: '';
+    animation: dots 1.5s infinite;
+  }
+  @keyframes dots {
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+  }
+
+  /* Result card */
+  .result-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,229,160,0.04);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .result-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .scan-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  .scan-time {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .scan-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .tag-bullish { background: rgba(0,229,160,0.15); color: var(--accent); border: 1px solid rgba(0,229,160,0.3); }
+  .tag-caution { background: rgba(255,204,0,0.15); color: var(--warn); border: 1px solid rgba(255,204,0,0.3); }
+  .tag-bearish { background: rgba(255,68,102,0.15); color: var(--red); border: 1px solid rgba(255,68,102,0.3); }
+
+  .result-body {
+    padding: 18px;
+  }
+
+  /* Markdown-like rendering */
+  .result-body h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 20px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-body h2:first-child { margin-top: 0; }
+
+  .result-body h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent2);
+    margin: 14px 0 8px;
+  }
+
+  .result-body p {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--dim);
+    margin-bottom: 10px;
+  }
+
+  .result-body ul, .result-body ol {
+    padding-left: 18px;
+    margin-bottom: 10px;
+  }
+
+  .result-body li {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--dim);
+    margin-bottom: 3px;
+  }
+
+  /* Stock cards grid */
+  .stocks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .stock-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    transition: border-color 0.2s;
+  }
+
+  .stock-card:hover { border-color: var(--border-bright); }
+
+  .stock-card.rank-1 { border-left: 3px solid var(--accent); }
+  .stock-card.rank-2 { border-left: 3px solid var(--accent2); }
+  .stock-card.rank-3 { border-left: 3px solid var(--warn); }
+  .stock-card.rank-4 { border-left: 3px solid #a855f7; }
+  .stock-card.rank-5 { border-left: 3px solid var(--accent3); }
+
+  .stock-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .stock-ticker {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .stock-name {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .stock-score {
+    font-size: 22px;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .score-high { color: var(--accent); }
+  .score-med { color: var(--warn); }
+  .score-low { color: var(--red); }
+
+  .stock-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .stock-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .stock-row .lbl { color: var(--muted); }
+  .stock-row .val { color: var(--text); font-weight: 500; }
+  .stock-row .val.green { color: var(--accent); }
+  .stock-row .val.yellow { color: var(--warn); }
+  .stock-row .val.red { color: var(--red); }
+
+  .stock-note {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Market context block */
+  .market-block {
+    background: rgba(0,153,255,0.05);
+    border: 1px solid rgba(0,153,255,0.15);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 14px 0;
+  }
+
+  .market-block-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .market-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .market-stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .market-stat .val { font-size: 16px; font-family: 'Syne', sans-serif; font-weight: 700; }
+
+  /* Warning block */
+  .warn-block {
+    background: rgba(255,204,0,0.06);
+    border: 1px solid rgba(255,204,0,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 11px;
+    color: var(--warn);
+    line-height: 1.6;
+  }
+
+  .warn-block strong { font-family: 'Syne', sans-serif; font-size: 12px; display: block; margin-bottom: 4px; }
+
+  /* Capital table */
+  .cap-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 11px;
+  }
+
+  .cap-table th {
+    text-align: left;
+    padding: 8px 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  .cap-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(30,37,48,0.5);
+    color: var(--dim);
+  }
+
+  .cap-table tr:last-child td { border-bottom: none; color: var(--text); font-weight: 600; }
+  .cap-table .green { color: var(--accent); }
+
+  /* Disclaimer */
+  .disclaimer {
+    background: rgba(255,68,102,0.05);
+    border: 1px solid rgba(255,68,102,0.15);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    background: var(--panel);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 60px 32px;
+    text-align: center;
+  }
+
+  .empty-state .icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  .empty-state h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  /* Error */
+  .error-card {
+    background: rgba(255,68,102,0.06);
+    border: 1px solid rgba(255,68,102,0.2);
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 12px;
+    color: var(--red);
+    line-height: 1.6;
+  }
+
+  /* History list */
+  .history-strip {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .history-pill {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .history-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .control-bar { grid-template-columns: 1fr 1fr; }
+    .scan-btn, .clear-btn { grid-column: span 1; }
+    .stocks-grid { grid-template-columns: 1fr; }
+    .market-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <h1>PUT <span>SCANNER</span></h1>
+      <p>Options Intelligence · Cash-Secured & Margin</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        LIVE AI SCAN
+      </div>
+    </div>
+  </header>
+
+  <!-- Control Bar -->
+  <div class="control-bar">
+    <div class="field">
+      <label>Scan Date</label>
+      <input type="date" id="scanDate">
+    </div>
+    <div class="field">
+      <label>Scan Time</label>
+      <input type="time" id="scanTime">
+    </div>
+    <button class="scan-btn" id="scanBtn" onclick="runScan()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      SCAN MARKET
+    </button>
+    <button class="clear-btn" onclick="clearResults()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      CLEAR
+    </button>
+  </div>
+
+  <!-- API Key Bar -->
+  <div class="control-bar" style="grid-template-columns:1fr auto;margin-bottom:12px;">
+    <div class="field">
+      <label>🔑 Anthropic API Key <span style="color:var(--muted);font-size:9px;letter-spacing:0">(saved locally in browser · get yours at console.anthropic.com)</span></label>
+      <input type="password" id="apiKey" placeholder="sk-ant-api03-..." oninput="saveKey()" autocomplete="off">
+    </div>
+    <div style="align-self:end;display:flex;gap:8px;">
+      <button class="clear-btn" onclick="toggleKeyVisibility()" id="showKeyBtn" style="white-space:nowrap">👁 Show</button>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-item">
+      <span>MODEL</span>
+      <span class="val green">Claude Sonnet 4</span>
+    </div>
+    <div class="status-item">
+      <span>STRATEGY</span>
+      <span class="val">Sell Cash-Secured Puts</span>
+    </div>
+    <div class="status-item">
+      <span>TARGET PREMIUM</span>
+      <span class="val green">$2,000 / week</span>
+    </div>
+    <div class="status-item">
+      <span>ACCOUNT</span>
+      <span class="val">ThinkorSwim Margin</span>
+    </div>
+    <div class="status-item">
+      <span>SCANS TODAY</span>
+      <span class="val" id="scanCount">0</span>
+    </div>
+  </div>
+
+  <!-- History strip -->
+  <div class="history-strip" id="historyStrip" style="display:none"></div>
+
+  <!-- Output -->
+  <div id="output">
+    <div class="empty-state">
+      <div class="icon">📡</div>
+      <h3>Ready to Scan</h3>
+      <p>Set a date & time, then hit <strong style="color:var(--accent)">SCAN MARKET</strong> to get AI-powered put selling setups based on today's market conditions, IV rank, and your $2,000/week premium target.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Save/load API key from localStorage
+function saveKey() {
+  const k = document.getElementById('apiKey').value.trim();
+  if (k) localStorage.setItem('put_scanner_api_key', k);
+}
+
+function loadKey() {
+  const k = localStorage.getItem('put_scanner_api_key');
+  if (k) document.getElementById('apiKey').value = k;
+}
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById('apiKey');
+  const btn = document.getElementById('showKeyBtn');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈 Hide'; }
+  else { inp.type = 'password'; btn.textContent = '👁 Show'; }
+}
+
+// Set default date/time to now
+function setDefaults() {
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const timeStr = now.toTimeString().slice(0,5);
+  document.getElementById('scanDate').value = dateStr;
+  document.getElementById('scanTime').value = timeStr;
+}
+setDefaults();
+loadKey();
+
+let scanCount = 0;
+const scanHistory = [];
+
+function clearResults() {
+  document.getElementById('output').innerHTML = `
+    <div class="empty-state">
+      <div class="icon">📡</div>
+      <h3>Ready to Scan</h3>
+      <p>Set a date & time, then hit <strong style="color:var(--accent)">SCAN MARKET</strong> to get AI-powered put selling setups based on today's market conditions, IV rank, and your $2,000/week premium target.</p>
+    </div>`;
+}
+
+function formatDateTime(dateStr, timeStr) {
+  const d = new Date(`${dateStr}T${timeStr}`);
+  return d.toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+async function runScan() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey || !apiKey.startsWith('sk-ant')) {
+    alert('Please enter a valid Anthropic API key (starts with sk-ant-...).\n\nGet yours at: https://console.anthropic.com/');
+    return;
+  }
+
+  const dateVal = document.getElementById('scanDate').value;
+  const timeVal = document.getElementById('scanTime').value;
+
+  if (!dateVal || !timeVal) {
+    alert('Please set a date and time before scanning.');
+    return;
+  }
+
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<div style="width:14px;height:14px;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;border-radius:50%;animation:spin 0.8s linear infinite"></div> SCANNING...`;
+
+  const output = document.getElementById('output');
+  output.innerHTML = `
+    <div class="thinking">
+      <div class="spinner"></div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;color:var(--text);margin-bottom:6px;">Analyzing Market Conditions</div>
+      <div class="thinking-dots" style="font-size:12px;">Scanning IV rank, earnings calendar, VIX, and liquidity</div>
+    </div>`;
+
+  const scanLabel = formatDateTime(dateVal, timeVal);
+
+  const prompt = `You are an expert options trader specializing in selling cash-secured puts for weekly income. 
+Today's scan date/time: ${scanLabel}
+
+The trader's profile:
+- Goal: Collect ~$2,000/week in premium from selling puts
+- Account: ThinkorSwim margin account 
+- Strategy: Sell OTM puts 10-20% below current price, 30-45 DTE, delta 0.20-0.35
+- Only wants stocks they'd be happy to own if assigned
+- Wants to close positions at 50% profit
+
+Based on current market conditions as of ${scanLabel}, provide a structured market scan. You MUST respond in valid JSON format with this exact structure:
+
+{
+  "scanTime": "${scanLabel}",
+  "marketContext": {
+    "vix": "estimated VIX level",
+    "vixLabel": "LOW|MODERATE|ELEVATED|HIGH",
+    "trend": "BULLISH|NEUTRAL|BEARISH",
+    "sentiment": "one sentence market sentiment",
+    "keyRisks": ["risk1", "risk2", "risk3"]
+  },
+  "top5": [
+    {
+      "rank": 1,
+      "ticker": "TICKER",
+      "companyName": "Full Company Name",
+      "sector": "sector",
+      "stockPrice": "$XXX",
+      "suggestedStrike": "$XXX",
+      "expiration": "MMM DD, YYYY",
+      "dte": 37,
+      "delta": "0.25",
+      "estimatedPremium": "$XXX per contract",
+      "ivRank": "XX%",
+      "ivLevel": "XX%",
+      "earningsClear": true,
+      "nextEarnings": "~Month YYYY",
+      "marginRequired": "$X,XXX per contract (TOS)",
+      "whyNow": "2-3 sentence reason why this is a good put-sell setup today",
+      "caution": "one key risk to watch",
+      "score": 87
+    }
+  ],
+  "portfolioSummary": {
+    "totalContracts": 8,
+    "totalMarginTOS": "$XX,XXX",
+    "totalCashSecured": "$XXX,XXX",
+    "weeklyPremiumTarget": "$2,220",
+    "weeklyROCMargin": "X.X%",
+    "weeklyROCCash": "X.X%"
+  },
+  "avoidToday": ["TICKER1 - reason", "TICKER2 - reason"],
+  "strategyNote": "2-3 sentence note about today's specific market conditions and how they affect put selling strategy"
+}
+
+Be realistic with IV levels and premiums given the current macro environment (tariff uncertainty, Middle East geopolitical risks, AI disruption concerns, VIX in 20-25 range). Pick well-known, liquid, fundamentally strong stocks. Score is 0-100 based on IV rank, liquidity, fundamentals, and setup quality.`;
+
+  try {
+    // Try direct first, then fall back to CORS proxies
+    const body = JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    });
+
+    const endpoints = [
+      {
+        url: "https://api.anthropic.com/v1/messages",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-request-source": "user-provided-key"
+        }
+      },
+      {
+        url: "https://corsproxy.io/?https://api.anthropic.com/v1/messages",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01"
+        }
+      },
+      {
+        url: "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.anthropic.com/v1/messages"),
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01"
+        }
+      }
+    ];
+
+    let response = null;
+    let lastErr = null;
+    for (const ep of endpoints) {
+      try {
+        const r = await fetch(ep.url, { method: "POST", headers: ep.headers, body });
+        if (r.ok || r.status === 400 || r.status === 401) { response = r; break; }
+      } catch(e) { lastErr = e; }
+    }
+    if (!response) throw new Error("All endpoints failed. " + (lastErr?.message || "Check network/API key."));
+
+    const data = await response.json();
+
+    // Check for API-level errors
+    if (data.error) {
+      throw new Error(`API Error (${data.error.type}): ${data.error.message}`);
+    }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${JSON.stringify(data).slice(0,200)}`);
+    }
+
+    const rawText = data.content.map(b => b.text || '').join('');
+
+    // Parse JSON from response
+    let result;
+    try {
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      result = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+    } catch(e) {
+      throw new Error("Could not parse scan results. Raw: " + rawText.slice(0, 200));
+    }
+
+    scanCount++;
+    document.getElementById('scanCount').textContent = scanCount;
+
+    // Store in history
+    scanHistory.unshift({ label: scanLabel, result });
+    if (scanHistory.length > 5) scanHistory.pop();
+    renderHistory();
+
+    renderResult(result, scanLabel);
+
+  } catch(err) {
+    output.innerHTML = `<div class="error-card">
+      <strong style="font-family:'Syne',sans-serif;font-size:13px;display:block;margin-bottom:8px;">⚠ Scan Error</strong>
+      ${err.message}<br><br>
+      <span style="color:var(--muted)">Check your network connection and try again.</span>
+    </div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> SCAN MARKET`;
+  }
+}
+
+function renderHistory() {
+  const strip = document.getElementById('historyStrip');
+  if (scanHistory.length === 0) { strip.style.display = 'none'; return; }
+  strip.style.display = 'flex';
+  strip.innerHTML = '<span style="font-size:10px;color:var(--muted);align-self:center;white-space:nowrap">HISTORY:</span>' +
+    scanHistory.map((h, i) =>
+      `<div class="history-pill" onclick="showHistoryResult(${i})">${h.label}</div>`
+    ).join('');
+}
+
+function showHistoryResult(idx) {
+  renderResult(scanHistory[idx].result, scanHistory[idx].label);
+}
+
+function vixColor(label) {
+  if (label === 'LOW') return 'green';
+  if (label === 'MODERATE') return 'green';
+  if (label === 'ELEVATED') return 'yellow';
+  return 'red';
+}
+
+function trendColor(t) {
+  if (t === 'BULLISH') return 'green';
+  if (t === 'BEARISH') return 'red';
+  return 'yellow';
+}
+
+function scoreColor(s) {
+  if (s >= 80) return 'score-high';
+  if (s >= 60) return 'score-med';
+  return 'score-low';
+}
+
+function tagForTrend(t) {
+  if (t === 'BULLISH') return '<span class="scan-tag tag-bullish">BULLISH</span>';
+  if (t === 'BEARISH') return '<span class="scan-tag tag-bearish">BEARISH</span>';
+  return '<span class="scan-tag tag-caution">NEUTRAL</span>';
+}
+
+function renderResult(r, label) {
+  const mc = r.marketContext || {};
+  const ps = r.portfolioSummary || {};
+  const top5 = r.top5 || [];
+  const avoid = r.avoidToday || [];
+
+  const stockCards = top5.map((s, i) => `
+    <div class="stock-card rank-${i+1}">
+      <div class="stock-top">
+        <div>
+          <div class="stock-ticker">${s.ticker}</div>
+          <div class="stock-name">${s.companyName} · ${s.sector}</div>
+        </div>
+        <div class="stock-score ${scoreColor(s.score)}">${s.score}</div>
+      </div>
+      <div class="stock-rows">
+        <div class="stock-row"><span class="lbl">Stock Price</span><span class="val">${s.stockPrice}</span></div>
+        <div class="stock-row"><span class="lbl">Strike / Exp</span><span class="val green">${s.suggestedStrike} · ${s.expiration}</span></div>
+        <div class="stock-row"><span class="lbl">DTE / Delta</span><span class="val">${s.dte} days · Δ${s.delta}</span></div>
+        <div class="stock-row"><span class="lbl">Est. Premium</span><span class="val green">${s.estimatedPremium}</span></div>
+        <div class="stock-row"><span class="lbl">IV Rank / IV</span><span class="val yellow">${s.ivRank} rank · ${s.ivLevel}</span></div>
+        <div class="stock-row"><span class="lbl">TOS Margin</span><span class="val">${s.marginRequired}</span></div>
+        <div class="stock-row"><span class="lbl">Earnings Clear</span><span class="val ${s.earningsClear ? 'green' : 'red'}">${s.earningsClear ? '✓ Yes — ' + s.nextEarnings : '⚠ ' + s.nextEarnings}</span></div>
+      </div>
+      <div class="stock-note">
+        <div style="color:var(--text);margin-bottom:4px;">${s.whyNow}</div>
+        <div style="color:var(--accent3)">⚠ ${s.caution}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const avoidList = avoid.map(a => `<li>${a}</li>`).join('');
+
+  const capRows = top5.map(s => `
+    <tr>
+      <td>${s.ticker}</td>
+      <td>${s.suggestedStrike}</td>
+      <td>${s.estimatedPremium}</td>
+      <td>${s.marginRequired}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('output').innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-meta">
+          <span class="scan-label">SCAN RESULTS</span>
+          <span class="scan-time">${label}</span>
+          ${tagForTrend(mc.trend)}
+        </div>
+        <div style="font-size:11px;color:var(--muted)">VIX: <span class="val ${vixColor(mc.vixLabel)}">${mc.vix} (${mc.vixLabel})</span></div>
+      </div>
+      <div class="result-body">
+
+        <!-- Market Context -->
+        <div class="market-block">
+          <div class="market-block-title">📊 Market Context</div>
+          <div class="market-grid">
+            <div class="market-stat">
+              <span class="lbl">VIX</span>
+              <span class="val ${vixColor(mc.vixLabel)}">${mc.vix}</span>
+            </div>
+            <div class="market-stat">
+              <span class="lbl">Trend</span>
+              <span class="val ${trendColor(mc.trend)}">${mc.trend}</span>
+            </div>
+            <div class="market-stat" style="grid-column:span 2">
+              <span class="lbl">Sentiment</span>
+              <span style="font-size:12px;color:var(--dim);margin-top:2px;display:block">${mc.sentiment}</span>
+            </div>
+          </div>
+          ${mc.keyRisks && mc.keyRisks.length ? `
+          <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+            <span style="color:var(--accent2)">KEY RISKS: </span>${mc.keyRisks.join(' · ')}
+          </div>` : ''}
+        </div>
+
+        <!-- Top 5 Picks -->
+        <h2>🏆 Top 5 Put Selling Setups</h2>
+        <div class="stocks-grid">${stockCards}</div>
+
+        <!-- Capital Table -->
+        <h2>💰 Capital & Premium Summary</h2>
+        <table class="cap-table">
+          <thead>
+            <tr><th>Ticker</th><th>Strike</th><th>Est. Premium</th><th>TOS Margin/Contract</th></tr>
+          </thead>
+          <tbody>
+            ${capRows}
+            <tr>
+              <td>TOTAL</td>
+              <td>—</td>
+              <td class="green">${ps.weeklyPremiumTarget || '~$2,200'}</td>
+              <td class="green">${ps.totalMarginTOS || 'See above'}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="market-block" style="margin-top:0">
+          <div class="market-block-title">📈 Return on Capital</div>
+          <div class="market-grid">
+            <div class="market-stat">
+              <span class="lbl">Margin (TOS)</span>
+              <span class="val green">${ps.totalMarginTOS}</span>
+            </div>
+            <div class="market-stat">
+              <span class="lbl">Cash-Secured</span>
+              <span class="val">${ps.totalCashSecured}</span>
+            </div>
+            <div class="market-stat">
+              <span class="lbl">Weekly ROC (Margin)</span>
+              <span class="val green">${ps.weeklyROCMargin}</span>
+            </div>
+            <div class="market-stat">
+              <span class="lbl">Weekly ROC (Cash)</span>
+              <span class="val">${ps.weeklyROCCash}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avoid Today -->
+        ${avoid.length ? `
+        <div class="warn-block">
+          <strong>⚠ AVOID TODAY</strong>
+          <ul style="padding-left:16px;margin:0">${avoidList}</ul>
+        </div>` : ''}
+
+        <!-- Strategy Note -->
+        ${r.strategyNote ? `
+        <div style="margin-top:12px;padding:12px 14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--dim);line-height:1.7">
+          <span style="font-family:'Syne',sans-serif;font-size:11px;color:var(--accent);display:block;margin-bottom:6px;letter-spacing:1px">STRATEGY NOTE</span>
+          ${r.strategyNote}
+        </div>` : ''}
+
+        <div class="disclaimer">
+          ⚠ This scan is AI-generated for educational purposes only. Not financial advice. Always verify IV, earnings dates, strikes, and margin requirements directly in your ThinkorSwim platform before placing any trades. Options trading involves substantial risk of loss.
+        </div>
+      </div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
