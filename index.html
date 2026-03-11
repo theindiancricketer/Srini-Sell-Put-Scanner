@@ -853,7 +853,7 @@ Based on current market conditions as of ${scanLabel}, provide a structured mark
 Be realistic with IV levels and premiums given the current macro environment (tariff uncertainty, Middle East geopolitical risks, AI disruption concerns, VIX in 20-25 range). Pick well-known, liquid, fundamentally strong stocks. Score is 0-100 based on IV rank, liquidity, fundamentals, and setup quality.`;
 
   try {
-    const response = await fetch("https://sellputscanner.theindiancricketer.workers.dev/", {
+    const response = await fetch("https://sellputproxy.theindiancricketer.workers.dev/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
