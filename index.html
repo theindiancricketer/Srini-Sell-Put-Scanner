@@ -479,14 +479,28 @@ function renderResult(r) {
     return `<div class="avoid-item"><span class="avoid-ticker">${t[0]}</span><span class="avoid-reason">${t[1]||''}</span></div>`;
   }).join('');
 
-  const capRows = top5.map(s=>`
+  const capRows = top5.map(s=>{
+    // Calculate % drop needed for assignment
+    const price = parseFloat((s.stockPrice||'0').replace(/[^0-9.]/g,''));
+    const strike = parseFloat((s.suggestedStrike||'0').replace(/[^0-9.]/g,''));
+    const pctDrop = (price>0 && strike>0) ? (((price-strike)/price)*100).toFixed(1) : '—';
+    const dropColor = pctDrop>=15 ? 'var(--accent)' : pctDrop>=10 ? 'var(--amber)' : 'var(--red)';
+    return `
     <tr>
       <td class="tk">${s.ticker}</td>
       <td>${s.suggestedStrike}</td>
       <td>${s.expiration}</td>
       <td class="gn">${s.estimatedPremium}</td>
       <td style="color:var(--blue)">${s.marginRequired}</td>
-    </tr>`).join('');
+      <td style="color:var(--text2);font-size:12px;">
+        <div style="font-weight:600;color:var(--text)">${s.stockPrice}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${r.scanTime||'—'}</div>
+      </td>
+      <td style="font-weight:700;color:${dropColor};font-size:14px;">
+        ↓${pctDrop}%
+        <div style="font-size:10px;color:var(--text3);font-weight:400;margin-top:2px;">to get assigned</div>
+      </td>
+    </tr>`}).join('');
 
   document.getElementById('output').innerHTML = `
     <div class="market-bar animate-in">
@@ -504,9 +518,9 @@ function renderResult(r) {
       <div class="summary-card">
         <div class="summary-card-head">📋 Position Summary</div>
         <table class="summary-table">
-          <thead><tr><th>Ticker</th><th>Strike</th><th>Expiry</th><th>Premium</th><th>TOS Margin</th></tr></thead>
+          <thead><tr><th>Ticker</th><th>Strike</th><th>Expiry</th><th>Premium</th><th>TOS Margin</th><th>Current Price</th><th>% Drop to Assign</th></tr></thead>
           <tbody>${capRows}
-            <tr><td class="tot" colspan="3">TOTAL (${ps.totalContracts||top5.length} contracts)</td><td class="gn tot">${ps.weeklyPremiumTarget||'—'}</td><td class="tot" style="color:var(--blue)">${ps.totalMarginTOS||'—'}</td></tr>
+            <tr><td class="tot" colspan="3">TOTAL (${ps.totalContracts||top5.length} contracts)</td><td class="gn tot">${ps.weeklyPremiumTarget||'—'}</td><td class="tot" style="color:var(--blue)">${ps.totalMarginTOS||'—'}</td><td colspan="2"></td></tr>
           </tbody>
         </table>
       </div>
