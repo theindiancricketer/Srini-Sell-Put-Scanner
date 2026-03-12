@@ -511,9 +511,6 @@ function renderResult(r) {
       <div class="market-cell"><div class="lbl">Scanned</div><div class="val c-text" style="font-size:11px;font-family:'Inter';font-weight:500;line-height:1.4;margin-top:2px;">${r.scanTime||'—'}</div></div>
     </div>
 
-    <div class="section-header"><h2>🏆 Top 5 Put Selling Setups</h2><span class="badge">Click any card to expand details</span></div>
-    <div class="stock-list">${cards}</div>
-
     <div class="summary-panel animate-in">
       <div class="summary-card">
         <div class="summary-card-head">📋 Position Summary</div>
@@ -534,6 +531,9 @@ function renderResult(r) {
         </div>
       </div>
     </div>
+
+    <div class="section-header"><h2>🏆 Top 5 Put Selling Setups</h2><span class="badge">Click any card to expand details</span></div>
+    <div class="stock-list">${cards}</div>
 
     <div class="info-row animate-in">
       <div class="info-card avoid">
