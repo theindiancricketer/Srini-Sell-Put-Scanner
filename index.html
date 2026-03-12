@@ -336,7 +336,8 @@ function toggleKey() {
   i.type = i.type==='password'?'text':'password';
   b.textContent = i.type==='password'?'Show':'Hide';
 }
-setDefaults(); loadKey();
+setDefaults();
+localStorage.removeItem('pscanner_key'); // always use embedded key
 
 let scanCount = 0;
 const history = [];
